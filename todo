@@ -1,0 +1,19 @@
+- Ideas for bot:
+    - Progress since last checked
+        - Track when new brawler unlocked?
+    - Check match history hourly
+        - Check for power play
+        - "victory", "draw", "defeat"
+    - Track trophy history daily
+        - Brawler trophy history?
+            - If date already exists, update instead of insert
+    - Which brawlers to push
+        - By difficulty, or by star points
+- Display:
+    - Trophy league, power play
+        - Time left, trophies after reset, reward
+        - Time left can be a text progress bar
+- Graphs:
+    - Trophy history
+    - Power play season history
+        - Can have specific graphs for win rates, play rates, maps, etc.
