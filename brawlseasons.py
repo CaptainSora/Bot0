@@ -1,3 +1,7 @@
+"""
+All functions related to the Brawl Pass Seasons.
+"""
+
 from json import load
 
 
@@ -9,10 +13,11 @@ BIG_BOX = 3 * BRAWL_BOX
 # Returns the time left
 def season_reset():
     # Load data
-    with open("BrawlStars/seasondata.json") as f:
+    with open("seasondata.json") as f:
         seasondata = load(f)['seasons'][-1]
     rewards = seasondata['rewards']
     cost = seasondata['cost']
+    pass
 
 # Needs reworking
 def season_rewards(convert=False, brawlerlist=[]):
@@ -23,7 +28,7 @@ def season_rewards(convert=False, brawlerlist=[]):
     brawlerlist is necessary with convert=True
     """
     # Load data
-    with open("BrawlStars/seasondata.json") as f:
+    with open("seasondata.json") as f:
         seasondata = load(f)['seasons'][-1]
     rewards = seasondata['rewards']
     cost = seasondata['cost']

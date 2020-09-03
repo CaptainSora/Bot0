@@ -11,8 +11,10 @@
         - By difficulty, or by star points
 - Display:
     - Trophy league, power play
-        - Time left, trophies after reset, reward
+        - Time left, trophies after reset, reward @done
         - Time left can be a text progress bar
+    - Total rank @done
+        - Change from last trophy league?
 - Graphs:
     - Trophy history
     - Power play season history

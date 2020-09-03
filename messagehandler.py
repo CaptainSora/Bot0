@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 
 import bot0
 import powerplay
+import timer
+import trophyleague
 
 load_dotenv()
 DISCORD_TOKEN = getenv('DISCORD_TOKEN')
@@ -12,9 +14,13 @@ DISCORD_TOKEN = getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='.')
 # bot.remove_command('help')
 
+def channel(channelid):
+    return bot.get_channel(channelid)
+
 @bot.event
 async def on_ready():
     print("Beep boop I'm a bot")
+    await timer.minute_timer(channel, bot.emojis)
 
 @bot.command(name='prefix')
 async def change_prefix(ctx, *args):
@@ -45,18 +51,22 @@ async def get_tag(ctx, *args):
 
 @bot.command(name='levels', aliases=['l'])
 async def display_levels(ctx, *args):
-    await bot0.display_levels(ctx, args, bot.emojis)
+    await trophyleague.display_levels(ctx, args, bot.emojis)
 
 @bot.command(name='progression', aliases=['prog'])
 async def progression_remaining(ctx, *args):
-    await bot0.progression_remaining(ctx, args, bot.emojis)
+    await trophyleague.progression_remaining(ctx, args, bot.emojis)
 
 @bot.command(name='leveldist', aliases=['dist'])
 async def level_distribution(ctx, *args):
-    await bot0.level_distribution(ctx, args)
+    await trophyleague.level_distribution(ctx, args)
 
 @bot.command(name='search', aliases=['s'])
 async def powerplay_search(ctx, *args):
     await powerplay.pp_search(ctx, args)
+
+@bot.command(name='profile', aliases=['p'])
+async def profile(ctx, *args):
+    await trophyleague.profile(ctx, args, bot.emojis)
 
 bot.run(DISCORD_TOKEN)

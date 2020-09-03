@@ -1,3 +1,8 @@
+"""
+All functions designed to do simple, repetitive calculations.
+"""
+
+
 """ GAME CONSTANTS """
 #        0  1   2   3   4    5    6    7    8    9  10
 POINTS = [0, 20, 30, 50, 80, 130, 210, 340, 550, 0, 0]
