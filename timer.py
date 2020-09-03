@@ -9,8 +9,7 @@ async def minute_timer(channel_func, emojis):
     pp_channel = channel_func(720098854887882845)
     while True:
         time = datetime.utcnow()
-        if time.minute % 10 == 0:
-            await bot_channel.send("Ping")
+        if time.minute % 30 == 0:
             await auto_pp_search(channel_func, emojis)
         if time.hour == 1 and time.minute == 0:
             quotes = [
