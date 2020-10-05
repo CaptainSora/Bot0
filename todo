@@ -9,6 +9,7 @@
             - If date already exists, update instead of insert
     - Which brawlers to push
         - By difficulty, or by star points
+    - Trophies pushed in one session
 - Display:
     - Trophy league, power play
         - Time left, trophies after reset, reward @done

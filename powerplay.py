@@ -9,7 +9,7 @@ from pprint import pprint
 import discord
 from discord.utils import get as get_emoji
 
-from bot0 import battle_exists, get_battlelog, insert_pp
+from bot0 import battle_exists, get_battlelog, get_playerdata, insert_pp
 
 PPSQUAD = ['JQU8Y00R', '22GV9VL', 'UULVQY2L']
 
@@ -23,12 +23,28 @@ def battletime(timestr):
         hour=int(timestr[9:11]), minute=int(timestr[11:13])
     ) - timedelta(hours=2)).date()
 
+def time_ago(timestr):
+    """
+    Returns the time since the battle was played.
+    """
+    time_since = datetime.utcnow() - datetime(
+        int(timestr[:4]), int(timestr[4:6]), int(timestr[6:8]),
+        hour=int(timestr[9:11]), minute=int(timestr[11:13])
+    )
+    hours = time_since // timedelta(hours=1)
+    minutes = (time_since // timedelta(minutes=1)) % 60
+    if hours > 0:
+        return f"{hours}h {minutes}m ago"
+    else:
+        return f"{minutes}m ago"
+
 async def auto_pp_search(channel_func, emojis):
     # Possible rewards:
     solosd = [38, 34, 30, 26, 22, 18, 14, 10, 6, 2]
     duosd = [34, 26, 18, 10, 2]
     three = {'victory': [33, 30], 'draw': [15], 'defeat': [5]}
     # Colors
+    epic = 0xe600ff
     win = 0x00bd5b
     draw = 0x1071e0
     loss = 0xd60606
@@ -39,9 +55,20 @@ async def auto_pp_search(channel_func, emojis):
     today = (datetime.utcnow() - timedelta(hours=2)).date()
     # Open tracking members
     with open('pptracking.json') as f:
-        players = load(f)['players']
-    # Search (unoptimized)
-    for playertag in players:
+        players = {p:get_playerdata(p)['name'] for p in load(f)['players']}
+
+    def username(fulltag):
+        """
+        Returns the name of the player with the tag, if it is a tracked tag.
+        """
+        ptag = fulltag[1:]
+        if ptag in players:
+            return players[ptag]
+        else:
+            return fulltag
+    
+    # Search
+    for playertag in players.keys():
         fulltag = '#' + playertag
         # Battlelog in chronological order (first is earliest)
         battlelog = get_battlelog(playertag)['items'][::-1]
@@ -56,26 +83,29 @@ async def auto_pp_search(channel_func, emojis):
                 continue
             if battle_exists(b['battleTime'], playertag):
                 # Already recorded
+                # Might be a bug here? Duplicated 129
                 continue
             # Find Trophy Change, set up embed
             trophychange = b['battle'].get('trophyChange', 0)
             mode = camel_to_title(b['event']['mode'])
             bmap = b['event']['map']
-            embed = discord.Embed(title="Power Play Match")
+            embed = discord.Embed(title="Power Play Match Found")
             embed.colour = draw
             embed.add_field(name='Mode', value=mode)
             embed.add_field(name='Map', value=bmap)
-            embed.add_field(name='\u200b', value='\u200b')
+            embed.add_field(name='Played', value=time_ago(b['battleTime']))
             # Calculate possible results
             if b['event']['mode'] == 'soloShowdown':
                 rank = b['battle']['rank']
                 if solosd[rank - 1] != trophychange:
                     continue
                 # Guaranteed to be new at this point
-                brawler = [
-                    p['brawler']['name'] for p in players
+                brawler_raw = [
+                    p['brawler'] for p in b['battle']['players']
                     if p['tag'] == fulltag
                 ][0]
+                brawler = brawler_raw['name']
+                trophies = brawler_raw['trophies']
                 embed.add_field(name='Rank', value=rank)
                 embed.add_field(
                     name='Result',
@@ -84,11 +114,17 @@ async def auto_pp_search(channel_func, emojis):
                 embed.add_field(name='\u200b', value='\u200b')
                 embed.add_field(
                     name="Player 1",
-                    value=f"#{playertag}\n{brawler}"
+                    value=(
+                        f"{pptrophy_emoji} {trophies}\n"
+                        f"{brawler}\n"
+                        f"{players[playertag]}"
+                    )
                 )
                 # Need 2 more blanks?
                 # Set embed colour
-                if rank <= 4:
+                if rank == 1:
+                    embed.colour = epic
+                elif rank <= 4:
                     embed.colour = win
                 elif rank >= 6:
                     embed.colour = loss
@@ -104,8 +140,8 @@ async def auto_pp_search(channel_func, emojis):
                 # Guaranteed to be new at this point
                 for t in b['battle']['teams']:
                     team = [
-                        t[0]['tag'], t[0]['brawler']['name'],
-                        t[1]['tag'], t[1]['brawler']['name']
+                        t[0]['brawler'], t[0]['tag'],
+                        t[1]['brawler'], t[1]['tag']
                     ]
                     if fulltag in team:
                         break
@@ -117,22 +153,33 @@ async def auto_pp_search(channel_func, emojis):
                 embed.add_field(name='\u200b', value='\u200b')
                 embed.add_field(
                     name="Player 1",
-                    value=f"{team[0]}\n{team[1]}"
+                    value=(
+                        f"{pptrophy_emoji} {team[0]['trophies']}\n"
+                        f"{team[0]['name']}\n"
+                        f"{username(team[1])}"
+                    )
                 )
                 embed.add_field(
                     name="Player 2",
-                    value=f"{team[2]}\n{team[3]}"
+                    value=(
+                        f"{pptrophy_emoji} {team[2]['trophies']}\n"
+                        f"{team[2]['name']}\n"
+                        f"{username(team[3])}"
+                    )
                 )
                 # Need 1 more blank?
                 # Set embed colour
-                if rank <= 2:
+                if rank == 1:
+                    embed.colour = epic
+                elif rank <= 2:
                     embed.colour = win
                 elif rank >= 4:
                     embed.colour = loss
                 # Write to DB
                 insert_pp(
                     battledate, b['battleTime'], mode, bmap, trophychange,
-                    team[0][1:], team[1], p2tag=team[2][1:], p2brawler=team[3]
+                    team[1][1:], team[0]['name'],
+                    p2tag=team[3][1:], p2brawler=team[2]['name']
                 )
             else:
                 result = b['battle']['result']
@@ -141,13 +188,18 @@ async def auto_pp_search(channel_func, emojis):
                 # Guaranteed to be new at this point
                 for t in b['battle']['teams']:
                     team = [
-                        t[0]['tag'], t[0]['brawler']['name'],
-                        t[1]['tag'], t[1]['brawler']['name'],
-                        t[2]['tag'], t[2]['brawler']['name']
+                        t[0]['brawler'], t[0]['tag'],
+                        t[1]['brawler'], t[1]['tag'],
+                        t[2]['brawler'], t[2]['tag']
                     ]
                     if fulltag in team:
                         break
-                embed.add_field(name='Outcome', value=result)
+                # Star Player search
+                sp = ['', '', '']
+                if b['battle']['starPlayer']['tag'] in team:
+                    i = team.index(b['battle']['starPlayer']['tag'])
+                    sp[i // 2] = "\n:star: STAR PLAYER :star:"
+                embed.add_field(name='Outcome', value=result.capitalize())
                 embed.add_field(
                     name='Result',
                     value=f"{pptrophy_emoji} {trophychange:+}"
@@ -155,26 +207,42 @@ async def auto_pp_search(channel_func, emojis):
                 embed.add_field(name='\u200b', value='\u200b')
                 embed.add_field(
                     name="Player 1",
-                    value=f"{team[0]}\n{team[1]}"
+                    value=(
+                        f"{pptrophy_emoji} {team[0]['trophies']}\n"
+                        f"{team[0]['name']}\n"
+                        f"{username(team[1])}{sp[0]}"
+                    )
                 )
                 embed.add_field(
                     name="Player 2",
-                    value=f"{team[2]}\n{team[3]}"
+                    value=(
+                        f"{pptrophy_emoji} {team[2]['trophies']}\n"
+                        f"{team[2]['name']}\n"
+                        f"{username(team[3])}{sp[1]}"
+                    )
                 )
                 embed.add_field(
                     name="Player 3",
-                    value=f"{team[4]}\n{team[5]}"
+                    value=(
+                        f"{pptrophy_emoji} {team[4]['trophies']}\n"
+                        f"{team[4]['name']}\n"
+                        f"{username(team[5])}{sp[2]}"
+                    )
                 )
                 # Set embed colour
                 if result == 'victory':
-                    embed.colour = win
+                    if trophychange == 33:
+                        embed.colour = epic
+                    else:
+                        embed.colour = win
                 elif result == 'defeat':
                     embed.colour = loss
                 # Write to DB
                 insert_pp(
                     battledate, b['battleTime'], mode, bmap, trophychange,
-                    team[0][1:], team[1], p2tag=team[2][1:], p2brawler=team[3],
-                    p3tag=team[4][1:], p3brawler=team[5]
+                    team[1][1:], team[0]['name'],
+                    p2tag=team[3][1:], p2brawler=team[2]['name'],
+                    p3tag=team[5][1:], p3brawler=team[4]['name']
                 )
             await pp_channel.send(embed=embed)
 

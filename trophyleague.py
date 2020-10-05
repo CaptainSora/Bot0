@@ -28,14 +28,14 @@ BRAWLER_ORDER = [
     ('TARA', 'MYTHIC'), ('GENE', 'MYTHIC'), ('MAX', 'MYTHIC'),
     ('MR. P', 'MYTHIC'), ('SPROUT', 'MYTHIC'), ('SPIKE', 'LEGENDARY'),
     ('CROW', 'LEGENDARY'), ('LEON', 'LEGENDARY'), ('SANDY', 'LEGENDARY'),
-    ('GALE', 'CHROMATIC'), ('SURGE', 'CHROMATIC')
+    ('GALE', 'CHROMATIC'), ('SURGE', 'CHROMATIC'), ('COLETTE', 'CHROMATIC')
 ] # Should ping me if brawler is not in this list
 
 
 async def check_missing_brawler(ctx, all_brawlers=None):
     if all_brawlers is None:
         all_brawlers = bot0.get_all_brawlers()
-    if len(all_brawlers) < len(BRAWLER_ORDER):
+    if len(all_brawlers) > len(BRAWLER_ORDER):
         missing = [
             b for b in all_brawlers if b not in list(zip(*BRAWLER_ORDER))[0]]
         await ctx.send(f"<@!278589912184258562> Missing {', '.join(missing)}")
@@ -109,7 +109,7 @@ async def display_levels(ctx, args, emojis):
                 value += ''.join(spga[index])
                 value += '\u0009\u200b\n\u200b'
             else:
-                value = f"Unlock in Brawl Boxes!\n{lock_emoji}\n\u200b"
+                value = f"Locked\n{lock_emoji}\n\u200b"
             embed.add_field(
                 name=BRAWLER_ORDER[index][0],
                 value=value,

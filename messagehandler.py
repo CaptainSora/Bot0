@@ -20,6 +20,9 @@ def channel(channelid):
 @bot.event
 async def on_ready():
     print("Beep boop I'm a bot")
+
+@bot.command(name='trackpp')
+async def start_autopp(ctx, *args):
     await timer.minute_timer(channel, bot.emojis)
 
 @bot.command(name='prefix')
