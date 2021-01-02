@@ -20,10 +20,12 @@ def channel(channelid):
 @bot.event
 async def on_ready():
     print("Beep boop I'm a bot")
+    bot_channel = channel(735307488383074348)
+    await bot_channel.send("Connected to discord")
 
 @bot.command(name='trackpp')
 async def start_autopp(ctx, *args):
-    await timer.minute_timer(channel, bot.emojis)
+    await timer.minute_timer(channel, bot.emojis, ctx)
 
 @bot.command(name='prefix')
 async def change_prefix(ctx, *args):
@@ -66,7 +68,7 @@ async def level_distribution(ctx, *args):
 
 @bot.command(name='search', aliases=['s'])
 async def powerplay_search(ctx, *args):
-    await powerplay.pp_search(ctx, args)
+    await powerplay.auto_pp_search(channel, bot.emojis)
 
 @bot.command(name='profile', aliases=['p'])
 async def profile(ctx, *args):

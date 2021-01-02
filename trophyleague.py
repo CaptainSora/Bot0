@@ -24,11 +24,13 @@ BRAWLER_ORDER = [
     ('RICO', 'SUPER RARE'), ('DARRYL', 'SUPER RARE'), ('PENNY', 'SUPER RARE'),
     ('CARL', 'SUPER RARE'), ('JACKY', 'SUPER RARE'), ('PIPER', 'EPIC'),
     ('PAM', 'EPIC'), ('FRANK', 'EPIC'), ('BIBI', 'EPIC'),
-    ('BEA', 'EPIC'), ('NANI', 'EPIC'), ('MORTIS', 'MYTHIC'),
-    ('TARA', 'MYTHIC'), ('GENE', 'MYTHIC'), ('MAX', 'MYTHIC'),
-    ('MR. P', 'MYTHIC'), ('SPROUT', 'MYTHIC'), ('SPIKE', 'LEGENDARY'),
-    ('CROW', 'LEGENDARY'), ('LEON', 'LEGENDARY'), ('SANDY', 'LEGENDARY'),
-    ('GALE', 'CHROMATIC'), ('SURGE', 'CHROMATIC'), ('COLETTE', 'CHROMATIC')
+    ('BEA', 'EPIC'), ('NANI', 'EPIC'), ('EDGAR', 'EPIC'),
+    ('MORTIS', 'MYTHIC'), ('TARA', 'MYTHIC'), ('GENE', 'MYTHIC'),
+    ('MAX', 'MYTHIC'), ('MR. P', 'MYTHIC'), ('SPROUT', 'MYTHIC'),
+    ('BYRON', 'MYTHIC'), ('SPIKE', 'LEGENDARY'), ('CROW', 'LEGENDARY'),
+    ('LEON', 'LEGENDARY'), ('SANDY', 'LEGENDARY'), ('AMBER', 'LEGENDARY'),
+    ('GALE', 'CHROMATIC'), ('SURGE', 'CHROMATIC'), ('COLETTE', 'CHROMATIC'),
+    ('LOU', 'CHROMATIC')
 ] # Should ping me if brawler is not in this list
 
 
@@ -37,8 +39,13 @@ async def check_missing_brawler(ctx, all_brawlers=None):
         all_brawlers = bot0.get_all_brawlers()
     if len(all_brawlers) > len(BRAWLER_ORDER):
         missing = [
-            b for b in all_brawlers if b not in list(zip(*BRAWLER_ORDER))[0]]
-        await ctx.send(f"<@!278589912184258562> Missing {', '.join(missing)}")
+            b["name"] for b in all_brawlers
+            if b["name"] not in list(zip(*BRAWLER_ORDER))[0]
+        ]
+        await ctx.send(
+            f"<@!278589912184258562> Brawler list is missing "
+            f"{', '.join(missing)}"
+        )
 
 def find_brawler(name, blist):
     for b in blist:
@@ -345,14 +352,14 @@ async def profile(ctx, args, emojis):
         ),
         inline=False
     )
-    # Brawl Pass Season
-    embed.add_field(
-        name=brawltime.season_name(),
-        value=(
-            f"Time left: :clock3: {brawltime.time_remaining('brawlpass')}"
-        ),
-        inline=False
-    )
+    # Brawl Pass Season (Retired)
+    # embed.add_field(
+    #     name=brawltime.season_name(),
+    #     value=(
+    #         f"Time left: :clock3: {brawltime.time_remaining('brawlpass')}"
+    #     ),
+    #     inline=False
+    # )
     # Unlocked (Brawlers, SP, GA)
     embed.add_field(
         name='Progress',

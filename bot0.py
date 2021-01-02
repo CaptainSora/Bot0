@@ -179,8 +179,11 @@ def battle_exists(battletime, tag):
         "SELECT p1tag, p2tag, p3tag FROM pphistory WHERE battletime = ?"
     )
     create_connection()
-    row = CONN.execute(sql_select_battle, (battletime,)).fetchone()
-    return (row and tag in row)
+    rows = CONN.execute(sql_select_battle, (str(battletime),)).fetchall()
+    for row in rows:
+        if tag in row:
+            return True
+    return False
 
 """ UTILITY FUNCTIONS """
 def id(user):

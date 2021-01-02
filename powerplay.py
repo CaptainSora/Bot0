@@ -78,16 +78,17 @@ async def auto_pp_search(channel_func, emojis):
                 # Battle was fought at least two PP days ago
                 # Unnecessary optimization?
                 continue
-            if 'type' not in b['battle'] or b['battle']['type'] != 'ranked':
-                # Type is absent in weekend (aka ticketed) events
-                continue
+            # API changed with Oct 22 update (Amber)
+            # if 'type' not in b['battle'] or b['battle']['type'] != 'ranked':
+            #     # Type is absent in weekend (aka ticketed) events
+            #     continue
             if battle_exists(b['battleTime'], playertag):
                 # Already recorded
                 # Might be a bug here? Duplicated 129
                 continue
             # Find Trophy Change, set up embed
             trophychange = b['battle'].get('trophyChange', 0)
-            mode = camel_to_title(b['event']['mode'])
+            mode = camel_to_title(b['battle']['mode'])
             bmap = b['event']['map']
             embed = discord.Embed(title="Power Play Match Found")
             embed.colour = draw
@@ -95,7 +96,7 @@ async def auto_pp_search(channel_func, emojis):
             embed.add_field(name='Map', value=bmap)
             embed.add_field(name='Played', value=time_ago(b['battleTime']))
             # Calculate possible results
-            if b['event']['mode'] == 'soloShowdown':
+            if b['battle']['mode'] == 'soloShowdown':
                 rank = b['battle']['rank']
                 if solosd[rank - 1] != trophychange:
                     continue
@@ -133,7 +134,7 @@ async def auto_pp_search(channel_func, emojis):
                     battledate, b['battleTime'], mode, bmap, trophychange,
                     playertag, brawler
                 )
-            elif b['event']['mode'] == 'duoShowdown':
+            elif b['battle']['mode'] == 'duoShowdown':
                 rank = b['battle']['rank']
                 if duosd[rank - 1] != trophychange:
                     continue
